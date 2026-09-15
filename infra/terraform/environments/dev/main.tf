@@ -50,8 +50,16 @@ variable "internal_api_key" {
 }
 
 variable "app_public_url" {
-  description = "URL publica da aplicacao principal (oficina-app), sem barra final. Publicada pelo repo oficina-app/oficina-infra-k8s apos o deploy do Service oficina-app-lb."
+  description = <<-EOT
+    URL publica da aplicacao principal (oficina-app), sem barra final.
+    Publicada pelo repo oficina-app/oficina-infra-k8s apos o deploy do
+    Service oficina-app-lb. O default abaixo e um placeholder valido (para
+    nao quebrar o primeiro apply, antes do oficina-app estar rodando no
+    cluster) e PRECISA ser substituido em seguida por um novo apply com o
+    valor real.
+  EOT
   type        = string
+  default     = "https://example.invalid"
 }
 
 locals {
