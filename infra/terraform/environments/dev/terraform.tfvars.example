@@ -1,0 +1,11 @@
+project_name = "oficina"
+environment  = "dev"
+aws_region   = "us-east-1"
+
+# mesmo valor do repo oficina-app (JWT_SECRET / APP_INTERNAL_API_KEY)
+jwt_secret       = "mesmo-valor-de-JWT_SECRET-na-aplicacao"
+internal_api_key = "mesmo-valor-de-APP_INTERNAL_API_KEY-na-aplicacao"
+
+# preencher com a URL publica do Service oficina-app-lb, publicada pelo
+# deploy do repo oficina-app / oficina-infra-k8s
+app_public_url = "http://<hostname-do-oficina-app-lb>"

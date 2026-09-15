@@ -1,0 +1,67 @@
+name: Deploy Lambda (Terraform)
+
+on:
+  workflow_dispatch:
+    inputs:
+      terraform_env_dir:
+        description: "Terraform environment directory"
+        required: true
+        default: "infra/terraform/environments/dev"
+      terraform_auto_apply:
+        description: "Apply terraform changes automatically"
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Build and test
+        run: mvn -q clean test
+
+      - name: Package (shaded jar used as the Lambda deployment artifact)
+        run: mvn -q package -DskipTests
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: Terraform init
+        run: terraform -chdir=${{ github.event.inputs.terraform_env_dir }} init -input=false
+
+      - name: Terraform fmt check
+        run: terraform -chdir=${{ github.event.inputs.terraform_env_dir }} fmt -check
+
+      - name: Terraform validate
+        run: terraform -chdir=${{ github.event.inputs.terraform_env_dir }} validate
+
+      - name: Terraform plan
+        env:
+          TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+          TF_VAR_internal_api_key: ${{ secrets.APP_INTERNAL_API_KEY }}
+          TF_VAR_app_public_url: ${{ secrets.APP_PUBLIC_URL }}
+        run: terraform -chdir=${{ github.event.inputs.terraform_env_dir }} plan -input=false -out=tfplan
+
+      - name: Terraform apply
+        if: ${{ github.event.inputs.terraform_auto_apply == 'true' }}
+        run: terraform -chdir=${{ github.event.inputs.terraform_env_dir }} apply -input=false -auto-approve tfplan

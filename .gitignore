@@ -1,0 +1,18 @@
+target/
+dependency-reduced-pom.xml
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### Terraform ###
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+tfplan
+tfplan.txt
+terraform.tfvars
+
+### IDE ###
+.idea
+*.iml
+.vscode/
